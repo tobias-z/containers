@@ -1,0 +1,6 @@
+name=$1
+
+if [ ! "$(docker ps -q -f name=$name)" ]; then
+    container start mysql
+    sleep 2
+fi

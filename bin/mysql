@@ -1,0 +1,8 @@
+#!/bin/bash
+name="mysql"
+
+util-ensure-start $name
+
+echo "$@" >> /tmp/test.mysql
+
+docker exec -i $name mysql "$@"
