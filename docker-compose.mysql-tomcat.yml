@@ -1,0 +1,50 @@
+version: "3.8"
+services:
+  db:
+    platform: linux/amd64
+    build: ./scripts/mysql-tomcat/mysql/
+    container_name: mysql
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: "ax2"
+      TZ: "Europe/Copenhagen"
+    ports:
+      - "3306:3306"
+    expose:
+      - "3306"
+
+    volumes:
+      - ./data/mysql-tomcat/mysql:/var/lib/mysql
+      - ./scripts/mysql-tomcat/mysql/startscript:/docker-entrypoint-initdb.d
+    networks:
+      - virtual_network1
+
+  web:
+    platform: linux/amd64
+    build: ./scripts/mysql-tomcat/tomcat/
+    container_name: tomcat
+    restart: unless-stopped
+
+    environment:
+      CONNECTION_STR: "jdbc:mysql://db:3306"
+      USER: "dev"
+      PW: "ax2"
+      DEPLOYED: "DEV"
+
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./data/mysql-tomcat/tomcat/webapps:/usr/local/tomcat/webapps
+      - ./scripts/mysql-tomcat/tomcat/tomcat-users.xml:/usr/local/tomcat/conf/tomcat-users.xml
+
+    networks:
+      - virtual_network1
+
+      # copy the tomcat manager app, context.xml and start tomcat)
+    command: sh -c "cp -r /usr/local/tomcat/webapps.dist/manager /usr/local/tomcat/webapps && cp /tmp/context.xml /usr/local/tomcat/webapps/manager/META-INF/context.xml && catalina.sh run"
+
+networks:
+  virtual_network1:
+    driver: bridge
+# bridge: The default network driver. If you don’t specify a driver, this is the type of network you are creating. Bridge networks are usually used when your applications run in standalone containers that need to communicate. See bridge networks.
